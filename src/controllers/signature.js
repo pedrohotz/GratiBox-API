@@ -1,6 +1,7 @@
-import connection from '../../database/database';
+import connection from '../../database/database.js';
 import { signatureValidation } from '../validation/validation.js';
 
+// eslint-disable-next-line consistent-return
 async function postSignature(req, res) {
   const {
     planId,
@@ -13,11 +14,11 @@ async function postSignature(req, res) {
     city,
     state,
   } = req.body;
-
+  const productsString = products.join(',');
   const errors = signatureValidation.validate({
     planId,
     deliveryId,
-    products,
+    productsString,
     signDate,
     fullName,
     adress,
@@ -26,6 +27,7 @@ async function postSignature(req, res) {
     state,
   }).error;
   if (errors) {
+    console.log(errors);
     return res.sendStatus(400);
   }
   const { authorization } = req.headers;
@@ -37,14 +39,19 @@ async function postSignature(req, res) {
       return res.sendStatus(409);
     }
     const userId = session.rows[0].user_id;
-    await connection.query('INSERT INTO signatures (user_id,plan_id,delivery_type_id,products,sign_date) VALUES ($1,$2,$3,$4,$5)', [userId, planId, deliveryId, products, signDate]);
-    await connection.query('INSERT INTO adress (user_id,endereco,cep,cidade,estado,name) VALUES ($1,$2,$3,$4,$5)', [userId, adress, cep, city, state, fullName]);
+    const existentSignature = await connection.query('SELECT * FROM signature WHERE user_id = $1', [userId]);
+    if (existentSignature.rowCount === 1) {
+      await connection.query('UPDATE signature SET plan_id = $1,delivery_type_id = $2,products = $3,sign_date = $4 WHERE user_id = $5', [planId, deliveryId, productsString, signDate, userId]);
+      return res.sendStatus(201);
+    }
+
+    await connection.query('INSERT INTO signature (user_id,plan_id,delivery_type_id,products,sign_date) VALUES ($1,$2,$3,$4,$5)', [userId, planId, deliveryId, productsString, signDate]);
+    await connection.query('INSERT INTO adress (user_id,endereco,cep,cidade,estado,name) VALUES ($1,$2,$3,$4,$5,$6)', [userId, adress, cep, city, state, fullName]);
     res.sendStatus(201);
   } catch (error) {
+    console.log(error);
     return res.sendStatus(500);
   }
 }
 
-export {
-  postSignature,
-};
+export default postSignature;
