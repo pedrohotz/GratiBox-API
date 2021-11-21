@@ -27,7 +27,6 @@ async function postSignature(req, res) {
     state,
   }).error;
   if (errors) {
-    console.log(errors);
     return res.sendStatus(400);
   }
   const { authorization } = req.headers;
@@ -49,9 +48,25 @@ async function postSignature(req, res) {
     await connection.query('INSERT INTO adress (user_id,endereco,cep,cidade,estado,name) VALUES ($1,$2,$3,$4,$5,$6)', [userId, adress, cep, city, state, fullName]);
     res.sendStatus(201);
   } catch (error) {
-    console.log(error);
     return res.sendStatus(500);
   }
 }
 
-export default postSignature;
+// eslint-disable-next-line consistent-return
+async function getSignature(req, res) {
+  const { authorization } = req.headers;
+  const token = authorization.split('Bearer ')[1];
+  const user = await connection.query('SELECT * FROM sessions WHERE token = $1', [token]);
+  const userId = user.rows[0].user_id;
+
+  const signature = await connection.query('SELECT plan_id,delivery_type_id,products,sign_date FROM signature WHERE user_id = $1', [userId]);
+  if (signature.rowCount === 0) {
+    return res.sendStatus(404);
+  }
+  res.send(signature.rows[0]);
+}
+
+export {
+  postSignature,
+  getSignature,
+};
