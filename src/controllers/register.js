@@ -19,7 +19,7 @@ async function register(req, res) {
     name,
     email,
     password,
-  });
+  }).error;
   if (errors) {
     return res.sendStatus(400);
   }
