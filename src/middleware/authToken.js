@@ -2,6 +2,7 @@ import connection from '../../database/database.js';
 
 // eslint-disable-next-line consistent-return
 async function authToken(req, res, next) {
+  // eslint-disable-next-line prefer-destructuring
   const { authorization } = req.headers;
   const token = authorization?.split('Bearer ')[1];
   try {

@@ -40,7 +40,6 @@ async function login(req, res) {
       res.send({
         name: userName,
         token,
-        signatureId: existentSignature.rows[0].id,
       });
     }
   } catch (error) {
