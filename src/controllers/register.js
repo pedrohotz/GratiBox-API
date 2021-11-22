@@ -12,14 +12,14 @@ async function register(req, res) {
   const user = await connection.query('SELECT * FROM users WHERE email = $1', [email]);
 
   if (user.rowCount > 0) {
-    return res.sendStatus(400);
+    return res.sendStatus(409);
   }
 
   const errors = registerValidation.validate({
     name,
     email,
     password,
-  });
+  }).error;
   if (errors) {
     return res.sendStatus(400);
   }
