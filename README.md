@@ -26,7 +26,7 @@ $ cd gratibox-api
 // Install the dependencies
 $ npm install
 // Create a environment variable
-Create a .env.dev file and fill it using your environment variables following the .env.example
+Create a .env file and fill it using your environment variables following the .env.example
 // Run the application
 $ npx nodemon src/server.js
 // The server will start at port: 4000
